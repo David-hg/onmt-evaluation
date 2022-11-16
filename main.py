@@ -68,8 +68,7 @@ def tokenize_dataset(testing_files, tokenizer_config):
     #TODO: tokenizer function to tokenize a file given a tokenizer
     tokenizer = pyonmttok.Tokenizer(**tokenizer_config)
     for file in testing_files:
-        tokenized_files = tokenizer.tokenize_file(f"{file}", f"{file}.bpe")
-    return tokenized_files
+        tokenizer.tokenize_file(f"{file}", f"{file}.bpe")
 
 def detokenize_result(inference_file_tokenized, tokenizer_config):
     #TODO: tokenizer function to tokenize a file given a tokenizer
@@ -104,7 +103,6 @@ def is_evaluation(languages):
     return len(languages)==2
 
 def translate(model_config, evaluation_config, dataset_config):
-    #TODO executes inference with solicited config.
     languages = get_languages(dataset_config['language-pair'])
     testing_files = get_test_files(dataset_config, languages)
     tokenized_files = tokenize_dataset(testing_files, evaluation_config['tokenizer_config'])
@@ -123,7 +121,7 @@ def write_metric_in_log(metric, metric_result, save_directory):
         result_file.write(str(metric_result) + '\n')
         
 def compute_bleu_or_chrf(hypothesis_file, target_files, metric):
-    metric = BLEU() if metric == 'BLEU' else CHRF()
+    metric = BLEU() if metric == 'BLEU' else CHRF(word_order=2)
     references = []
     with open(hypothesis_file, 'r') as file:
         hypothesis = file.readlines()
