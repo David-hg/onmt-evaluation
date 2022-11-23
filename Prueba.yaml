@@ -1,4 +1,4 @@
-permanent_config: '/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/permanent_config.yaml'
+permanent_config: 'permanent_config.yaml'
 translation_config:
     gpu: 0
     batch_size: 16384 

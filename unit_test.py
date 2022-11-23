@@ -6,7 +6,7 @@ import yaml
 
 @pytest.fixture
 def example_path():
-    return Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/directorio_prueba')
+    return Path('directorio_prueba')
 
 @pytest.fixture
 def example_evaluation():
@@ -42,7 +42,7 @@ def example_tokenizer():
     tokenizer_config = yaml.safe_load('''
     tokenizer_config:
         -   mode: conservative
-            bpe_model_path: /home/ddelahoz/Desarrollo/HDD/Data/enes-32k.model
+            bpe_model_path: enes-32k.model
             joiner_annotate: true
     ''')
     return tokenizer_config
@@ -64,7 +64,7 @@ def example_load_config():
             es:
     ''')
     experiments_config = yaml.safe_load('''
-    permanent_config: /home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/permanent_config.yaml
+    permanent_config: permanent_config.yaml
     translation_config:
         gpu: 0
         batch_size: 16384 
@@ -116,7 +116,7 @@ def mock_config():
     class Object(object):
         pass
     config = Object()
-    config.config = Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/Prueba.yaml')
+    config.config = Path('Prueba.yaml')
     return config
 
 
@@ -183,7 +183,7 @@ def test_is_evaluation():
 def test_write_metric_in_log():
     metric = 'BLEU'
     metric_value = 32.23
-    save_directory = Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation')
+    save_directory = Path('')
     if os.path.isfile(Path(save_directory / 'result.out')):
         os.remove(Path(save_directory / 'result.out'))
     write_metric_in_log(metric, metric_value, save_directory)
@@ -203,9 +203,9 @@ def generate_tokenized_paths(files):
     return [str(file) + '.bpe' for file in files]
 
 def test_tokenize_dataset(example_tokenizer):
-    correct_files = [Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/newstest-2013/newstest-2013.ca'), \
-        Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/newstest-2013/newstest-2013.es')]
-    correct_file = [Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/newstest-2013/newstest-2013.ca')]
+    correct_files = [Path('newstest-2013/newstest-2013.ca'), \
+        Path('newstest-2013/newstest-2013.es')]
+    correct_file = [Path('newstest-2013/newstest-2013.ca')]
 
     tokenizer_config = example_tokenizer['tokenizer_config'][0]
     target_correct_files = generate_tokenized_paths(correct_files)
@@ -224,10 +224,18 @@ def test_tokenize_dataset(example_tokenizer):
 
 def test_detokenized_dataset(example_tokenizer):
     tokenizer_config = example_tokenizer['tokenizer_config'][0]
-    correct_file = generate_tokenized_paths([Path('/home/ddelahoz/Desarrollo/HDD/Opennmt/onmt-evaluation/newstest-2013/newstest-2013.en')])[0]
+    correct_file = generate_tokenized_paths([Path('newstest-2013/newstest-2013.en')])[0]
     detokenize_result(correct_file, tokenizer_config)
     assert os.path.exists(correct_file[:-4]+'.out')
     os.remove(correct_file[:-4]+'.out')
+
+def test_compute_bleu_or_chrf():
+    bleu = 'BLEU'
+    chrf = 'CHRF'
+    hypothesis_file = Path('newstest-2013/newstest-2013.es.out')
+    target_file = [Path('newstest-2013/newstest-2013.es')]
+    assert 'BLEU' in str(compute_bleu_or_chrf(hypothesis_file, target_file, bleu))
+    assert 'chrF2++' in str(compute_bleu_or_chrf(hypothesis_file, target_file, chrf))
 
 
 
