@@ -237,6 +237,15 @@ def test_compute_bleu_or_chrf():
     assert 'BLEU' in str(compute_bleu_or_chrf(hypothesis_file, target_file, bleu))
     assert 'chrF2++' in str(compute_bleu_or_chrf(hypothesis_file, target_file, chrf))
 
+def test_compute_metrics():
+    testing_files = [Path('newstest-2013/newstest-2013.ca'), Path('newstest-2013/newstest-2013.es')]
+    hypothesis_file = Path('newstest-2013/newstest-2013.es')
+    metrics = ['COMET']
+    save_directory = Path('')
+    compute_metrics(hypothesis_file, testing_files, metrics, save_directory)
+    assert os.path.isfile(Path(save_directory / 'result.out'))
+    if os.path.isfile(Path(save_directory / 'result.out')):
+        os.remove(Path(save_directory / 'result.out'))
 
 
 

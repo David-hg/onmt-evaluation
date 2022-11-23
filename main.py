@@ -90,7 +90,7 @@ def generate_output_directory(evaluation_config):
 
 def translate_dataset(model_config, tokenized_files, saving_path, dataset_name):
     output_file = saving_path/Path(dataset_name + '.bpe')
-    config_string = ''
+    config_string = 'onmt_translate '
     for parameter in model_config:
         config_string += '-' + parameter + ' ' + model_config[parameter] + ' '
     for file, atribute in zip(tokenized_files, ['-src', '-tgt']):
@@ -133,14 +133,16 @@ def compute_bleu_or_chrf(hypothesis_file, target_files, metric):
     return result
 
 def compute_metrics(hypothesis_file, testing_files, metrics, save_directory):
+    hypothesis_file = hypothesis_file
     source_file = testing_files[0]
     target_files = testing_files[1:]
     for metric in metrics:
         if metric == 'COMET':
-            metric_value = subprocess.run(f'comet-score -s {source_file} -t {hypothesis_file} -r {target_files[0]}')
+            command = f'comet-score -s {source_file} -t {hypothesis_file} -r {target_files[0]}'.split()
+            metric_value = subprocess.run(command, capture_output = True).stdout.decode('utf-8')
             write_metric_in_log(metric, metric_value, save_directory)
         elif metric in ['BLEU', 'CHRF']:
-            metric_value = compute_bleu_or_chrf(hypothesis_file, target_files, metric)
+            metric_value = compute_bleu_or_chrf(source_file, target_files, metric)
             write_metric_in_log(metric, metric_value, save_directory)
         else:
             print(f'Sorry, metric: {metric} is not available currently suported metrics are BLEU CHRF and COMET')
