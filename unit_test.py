@@ -42,10 +42,21 @@ def example_tokenizer():
     tokenizer_config = yaml.safe_load('''
     tokenizer_config:
         -   mode: conservative
-            bpe_model_path: enes-32k.model
+            bpe_model_path: test/enes-32k.model
             joiner_annotate: true
     ''')
     return tokenizer_config
+
+@pytest.fixture
+def example_translation_config():
+    return yaml.safe_load('''
+        gpu: 0
+        batch_size: 16384 
+        batch_type: tokens 
+        beam_size: 5 
+        max_length: 300 
+        replace_unk: True
+    ''')
     
 @pytest.fixture
 def example_load_config():
@@ -83,7 +94,7 @@ def example_load_config():
                 -   mode: conservative
                     bpe_model_path:
                     joiner_annotate: 
-            models: [1, 2, 3]
+            models: [test/testing_model.pt]
             metrics: [1, 2, 3]
             save_directory: Prueba
         evaluation_2:
@@ -203,9 +214,9 @@ def generate_tokenized_paths(files):
     return [str(file) + '.bpe' for file in files]
 
 def test_tokenize_dataset(example_tokenizer):
-    correct_files = [Path('newstest-2013/newstest-2013.ca'), \
-        Path('newstest-2013/newstest-2013.es')]
-    correct_file = [Path('newstest-2013/newstest-2013.ca')]
+    correct_files = [Path('test/newstest-2013/newstest-2013.ca'), \
+        Path('test/newstest-2013/newstest-2013.es')]
+    correct_file = [Path('test/newstest-2013/newstest-2013.ca')]
 
     tokenizer_config = example_tokenizer['tokenizer_config'][0]
     target_correct_files = generate_tokenized_paths(correct_files)
@@ -224,7 +235,7 @@ def test_tokenize_dataset(example_tokenizer):
 
 def test_detokenized_dataset(example_tokenizer):
     tokenizer_config = example_tokenizer['tokenizer_config'][0]
-    correct_file = generate_tokenized_paths([Path('newstest-2013/newstest-2013.en')])[0]
+    correct_file = generate_tokenized_paths([Path('test/newstest-2013/newstest-2013.en')])[0]
     detokenize_result(correct_file, tokenizer_config)
     assert os.path.exists(correct_file[:-4]+'.out')
     os.remove(correct_file[:-4]+'.out')
@@ -232,14 +243,14 @@ def test_detokenized_dataset(example_tokenizer):
 def test_compute_bleu_or_chrf():
     bleu = 'BLEU'
     chrf = 'CHRF'
-    hypothesis_file = Path('newstest-2013/newstest-2013.es.out')
-    target_file = [Path('newstest-2013/newstest-2013.es')]
+    hypothesis_file = Path('test/newstest-2013/newstest-2013.es.out')
+    target_file = [Path('test/newstest-2013/newstest-2013.es')]
     assert 'BLEU' in str(compute_bleu_or_chrf(hypothesis_file, target_file, bleu))
     assert 'chrF2++' in str(compute_bleu_or_chrf(hypothesis_file, target_file, chrf))
 
 def test_compute_metrics():
-    testing_files = [Path('newstest-2013/newstest-2013.ca'), Path('newstest-2013/newstest-2013.es')]
-    hypothesis_file = Path('newstest-2013/newstest-2013.es')
+    testing_files = [Path('test/newstest-2013/newstest-2013.ca'), Path('test/newstest-2013/newstest-2013.es')]
+    hypothesis_file = Path('test/newstest-2013/newstest-2013.es')
     metrics = ['COMET']
     save_directory = Path('')
     compute_metrics(hypothesis_file, testing_files, metrics, save_directory)
@@ -247,6 +258,15 @@ def test_compute_metrics():
     if os.path.isfile(Path(save_directory / 'result.out')):
         os.remove(Path(save_directory / 'result.out'))
 
+def test_translate_dataset(example_translation_config):
+    model_config = example_translation_config
+    tokenized_files = [Path('test/newstest-2013/newstest-2013.es')]
+    models = ['test/testing_model.pt']
+    saving_path = Path('test/newstest-2013')
+    translate_dataset(model_config, tokenized_files, models, saving_path)
+    assert os.path.isfile('test/newstest-2013/newstest-2013.es.bpe')
+    if os.path.isfile(Path('test/newstest-2013/newstest-2013.es.bpe')):
+        os.remove(Path('test/newstest-2013/newstest-2013.es.bpe'))
 
 
 

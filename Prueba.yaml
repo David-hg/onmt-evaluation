@@ -17,7 +17,7 @@ evaluations:
             -   mode: conservative
                 bpe_model_path:
                 joiner_annotate: 
-        models: [1, 2, 3]
+        models: [test/testing_model.pt]
         metrics: [1, 2, 3]
         save_directory: Prueba
     evaluation_2:

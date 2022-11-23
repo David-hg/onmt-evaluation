@@ -88,14 +88,24 @@ def generate_output_directory(evaluation_config):
     output_path = Path(evaluation_config['save_directory']) / evaluation_config['evaluation_name']
     return output_path
 
-def translate_dataset(model_config, tokenized_files, saving_path, dataset_name):
-    output_file = saving_path/Path(dataset_name + '.bpe')
+def translate_dataset(model_config, tokenized_files, models, saving_path):
+    output_file_name = tokenized_files[0].parts[-1] + '.bpe'
+    print(saving_path)
+    output_file = saving_path/output_file_name
     config_string = 'onmt_translate '
     for parameter in model_config:
-        config_string += '-' + parameter + ' ' + model_config[parameter] + ' '
+        if parameter == 'replace_unk':
+            config_string += '--' + parameter + ' '
+        else:
+            config_string += '--' + parameter + ' ' + str(model_config[parameter]) + ' '
+    config_string += '--model '
+    for model in models:
+        config_string += model + ' '
     for file, atribute in zip(tokenized_files, ['-src', '-tgt']):
+        print(file)
         config_string += f'{atribute} {file} '
-    config_string +=  f'-output {output_file}'
+    config_string +=  f'--output {output_file}'
+    print(config_string)
     os.system(config_string)
     return output_file
 
