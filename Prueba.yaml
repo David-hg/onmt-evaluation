@@ -1,4 +1,4 @@
-permanent_config: 'permanent_config.yaml'
+permanent_config: permanent_config.yaml
 translation_config:
     gpu: 0
     batch_size: 16384 
@@ -9,25 +9,29 @@ translation_config:
 
 evaluations:
     evaluation_1:
-        evaluation_name: newstest-2013
-        datasets: [a, b, c]
+        evaluation_name: eval-1
+        datasets: [newstest-2013, newstest-2013]
         language-pair: en-es
         tokenizer_config:
         #This section must have a complete alingment with tokenizer parameters
             -   mode: conservative
-                bpe_model_path:
-                joiner_annotate: 
-        models: [test/testing_model.pt]
-        metrics: [1, 2, 3]
+                bpe_model_path: test/enes-32k.model
+                joiner_annotate: true
+        models: [test/testing_model_en_es.pt]
+        metrics: [BLEU, CHRF, COMET]
         save_directory: Prueba
     evaluation_2:
-        evaluation_name:
-        datasets: [a, b, c]
-        language-pair: 
-        tokenizer:
-        models: []
-        metrics: []
-        save_results:
+        evaluation_name: eval-2
+        datasets: [newstest-2013, newstest-2013]
+        language-pair: en-es
+        tokenizer_config:
+        #This section must have a complete alingment with tokenizer parameters
+            -   mode: conservative
+                bpe_model_path: test/enes-32k.model
+                joiner_annotate: true
+        models: [test/testing_model_en_es.pt]
+        metrics: [COMET]
+        save_directory: Prueba
 
 # save_data: /lustre/ific.uv.es/ml/upm044/0443/Pruebas/OpenNMT_py/final_models/internal_internal_tokenizer
 # ## Where the vocab(s) will be written 

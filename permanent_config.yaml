@@ -2,9 +2,9 @@ datasets:
   - name: newstest-2013
     original_direction: None
     files:
-      - ca: fichero_en_catalan.ca
-        en: fichero_en_ingles.en
-        es: fichero_en_español.es
+      - ca: test/newstest-2013/newstest-2013.ca
+        en: test/newstest-2013/newstest-2013.en
+        es: test/newstest-2013/newstest-2013.es
   - name: anniebonnie
     original_direction: en-es
     files:

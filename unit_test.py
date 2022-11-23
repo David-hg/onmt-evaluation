@@ -62,17 +62,17 @@ def example_translation_config():
 def example_load_config():
     permanent_config = yaml.safe_load('''
     datasets:
-    -   name: newstest-2013
-        original_direction: None
-        files:
-        -   ca: fichero_en_catalan.ca
-            en: fichero_en_ingles.en
-            es: fichero_en_español.es
-    -   name: anniebonnie
-        original_direction: en-es
-        files:
-        -   en:
-            es:
+    - name: newstest-2013
+      original_direction: None
+      files:
+        - ca: test/newstest-2013/newstest-2013.ca
+          en: test/newstest-2013/newstest-2013.en
+          es: test/newstest-2013/newstest-2013.es
+    - name: anniebonnie
+      original_direction: en-es
+      files:
+        - en:
+          es:
     ''')
     experiments_config = yaml.safe_load('''
     permanent_config: permanent_config.yaml
@@ -86,25 +86,29 @@ def example_load_config():
 
     evaluations:
         evaluation_1:
-            evaluation_name: newstest-2013
-            datasets: [a, b, c]
+            evaluation_name: eval-1
+            datasets: [newstest-2013, newstest-2013]
             language-pair: en-es
             tokenizer_config:
             #This section must have a complete alingment with tokenizer parameters
                 -   mode: conservative
-                    bpe_model_path:
-                    joiner_annotate: 
-            models: [test/testing_model.pt]
-            metrics: [1, 2, 3]
+                    bpe_model_path: test/enes-32k.model
+                    joiner_annotate: true
+            models: [test/testing_model_en_es.pt]
+            metrics: [BLEU, CHRF, COMET]
             save_directory: Prueba
         evaluation_2:
-            evaluation_name:
-            datasets: [a, b, c]
-            language-pair: 
-            tokenizer:
-            models: []
-            metrics: []
-            save_results:    
+            evaluation_name: eval-2
+            datasets: [newstest-2013, newstest-2013]
+            language-pair: en-es
+            tokenizer_config:
+            #This section must have a complete alingment with tokenizer parameters
+                -   mode: conservative
+                    bpe_model_path: test/enes-32k.model
+                    joiner_annotate: true
+            models: [test/testing_model_en_es.pt]
+            metrics: [COMET]
+            save_directory: Prueba    
     ''')
 
     return({'evaluation_config' : experiments_config,
@@ -215,7 +219,7 @@ def generate_tokenized_paths(files):
 
 def test_tokenize_dataset(example_tokenizer):
     correct_files = [Path('test/newstest-2013/newstest-2013.ca'), \
-        Path('test/newstest-2013/newstest-2013.es')]
+        Path('test/newstest-2013/newstest-2013.es'), Path('test/newstest-2013/newstest-2013.en')]
     correct_file = [Path('test/newstest-2013/newstest-2013.ca')]
 
     tokenizer_config = example_tokenizer['tokenizer_config'][0]
@@ -225,25 +229,28 @@ def test_tokenize_dataset(example_tokenizer):
     tokenize_dataset(correct_files, tokenizer_config)
     assert all(os.path.exists(file) for file in target_correct_files) is True
     for file in target_correct_files:
-        if os.path.exists(file):
-            os.remove(file)
+        if os.path.exists(file) and file != 'test/newstest-2013/newstest-2013.en.bpe':
+            #os.remove(file)
+            pass
 
     tokenize_dataset(correct_file, tokenizer_config)
     assert os.path.exists(target_correct_file[0]) is True
     if os.path.exists(target_correct_file[0]):
-        os.remove(target_correct_file[0])
+        #os.remove(target_correct_file[0])
+        pass
 
 def test_detokenized_dataset(example_tokenizer):
     tokenizer_config = example_tokenizer['tokenizer_config'][0]
     correct_file = generate_tokenized_paths([Path('test/newstest-2013/newstest-2013.en')])[0]
     detokenize_result(correct_file, tokenizer_config)
-    assert os.path.exists(correct_file[:-4]+'.out')
-    os.remove(correct_file[:-4]+'.out')
+    print(correct_file[:-4])
+    assert os.path.exists(correct_file[:-4])
+    #os.remove(correct_file[:-4])
 
 def test_compute_bleu_or_chrf():
     bleu = 'BLEU'
     chrf = 'CHRF'
-    hypothesis_file = Path('test/newstest-2013/newstest-2013.es.out')
+    hypothesis_file = Path('test/newstest-2013/newstest-2013.en.out')
     target_file = [Path('test/newstest-2013/newstest-2013.es')]
     assert 'BLEU' in str(compute_bleu_or_chrf(hypothesis_file, target_file, bleu))
     assert 'chrF2++' in str(compute_bleu_or_chrf(hypothesis_file, target_file, chrf))
@@ -252,21 +259,31 @@ def test_compute_metrics():
     testing_files = [Path('test/newstest-2013/newstest-2013.ca'), Path('test/newstest-2013/newstest-2013.es')]
     hypothesis_file = Path('test/newstest-2013/newstest-2013.es')
     metrics = ['COMET']
-    save_directory = Path('')
+    save_directory = Path('test/newstest-2013')
     compute_metrics(hypothesis_file, testing_files, metrics, save_directory)
     assert os.path.isfile(Path(save_directory / 'result.out'))
+    assert None
     if os.path.isfile(Path(save_directory / 'result.out')):
         os.remove(Path(save_directory / 'result.out'))
 
 def test_translate_dataset(example_translation_config):
     model_config = example_translation_config
-    tokenized_files = [Path('test/newstest-2013/newstest-2013.es')]
-    models = ['test/testing_model.pt']
+    tokenized_files = [Path('test/newstest-2013/newstest-2013.en.bpe')]
+    models = ['test/testing_model_en_es.pt']
     saving_path = Path('test/newstest-2013')
     translate_dataset(model_config, tokenized_files, models, saving_path)
-    assert os.path.isfile('test/newstest-2013/newstest-2013.es.bpe')
-    if os.path.isfile(Path('test/newstest-2013/newstest-2013.es.bpe')):
-        os.remove(Path('test/newstest-2013/newstest-2013.es.bpe'))
+    assert os.path.isfile('test/newstest-2013/newstest-2013.en.out.bpe')
+    if os.path.isfile(Path('test/newstest-2013/newstest-2013.en.out.bpe')):
+        os.remove(Path('test/newstest-2013/newstest-2013.en.out.bpe'))
+
+def test_main(mock_config):
+    main(mock_config)
+
+def test_cleaning():
+    for file in os.listdir(Path('test/newstest-2013')):
+        if file[-4:] == '.bpe':
+            os.remove('test/newstest-2013/' + file)
+
 
 
 
