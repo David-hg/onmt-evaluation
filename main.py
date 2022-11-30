@@ -134,31 +134,27 @@ def write_metric_in_log(metric, metric_result, save_directory):
 def compute_bleu_or_chrf(hypothesis_file, target_files, metric):
     metric = BLEU() if metric == 'BLEU' else CHRF(word_order=2)
     references = []
-    with open(hypothesis_file, 'r') as file:
-        hypothesis = file.readlines()
+    with open(hypothesis_file, 'r', encoding = 'utf-8') as file:
+        hypothesis = [sentence.strip() for sentence in file]
     
     for file_path in target_files:
-        with open(file_path, 'r') as file:
-            references.append(file.readlines())
+        with open(file_path, 'r', encoding = 'utf-8') as file:
+            references.append([sentence.strip() for sentence in file])
     result = metric.corpus_score(hypothesis, references)
     return result
 
 def compute_metrics(hypothesis_file, testing_files, metrics, save_directory):
-    print(testing_files)
     hypothesis_file = hypothesis_file
     source_file = testing_files[0]
     target_files = testing_files[1:]
     log_file = None
     for metric in metrics:
         if metric == 'COMET':
-            print('Estoy en la rama de COMET')
-            command = f'comet-score -s {source_file} -t {hypothesis_file} -r {target_files[0]}'.split()
-            print(command, save_directory)
+            command = f'comet-score -s {source_file} -t {hypothesis_file} -r {target_files[0]} --quiet'.split()
             metric_value = subprocess.run(command, capture_output = True).stdout.decode('utf-8')
-            print(metric_value)
             log_file = write_metric_in_log(metric, metric_value, save_directory)
         elif metric in ['BLEU', 'CHRF']:
-            metric_value = compute_bleu_or_chrf(source_file, target_files, metric)
+            metric_value = compute_bleu_or_chrf(hypothesis_file, target_files, metric)
             log_file = write_metric_in_log(metric, metric_value, save_directory)
         else:
             print(f'Sorry, metric: {metric} is not available currently suported metrics are BLEU CHRF and COMET')
