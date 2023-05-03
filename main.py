@@ -72,7 +72,7 @@ def tokenize_dataset(testing_files, tokenizer_config):
     return files
 
 def detokenize_result(inference_file_tokenized, tokenizer_config):
-    #TODO: tokenizer function to tokenize a file given a tokenizer
+    #TODO: detokenizer function to detokenize a file given a tokenizer
     print(inference_file_tokenized)
     inference_file_tokenized = str(inference_file_tokenized)
     tokenizer = pyonmttok.Tokenizer(**tokenizer_config)
@@ -140,6 +140,7 @@ def compute_bleu_or_chrf(hypothesis_file, target_files, metric):
     for file_path in target_files:
         with open(file_path, 'r', encoding = 'utf-8') as file:
             references.append([sentence.strip() for sentence in file])
+            
     result = metric.corpus_score(hypothesis, references)
     return result
 
