@@ -179,7 +179,6 @@ def evaluate(config):
 
 def main(args):
     config = load_config(args)
-    print(config)
-    #evaluate(config)
+    evaluate(config)
 
-#main(args)
+main(args)
